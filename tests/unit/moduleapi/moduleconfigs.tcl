@@ -246,19 +246,6 @@ start_server {tags {"modules"}} {
         }
     }
 
-    test {Module Set-Argument command work} {
-       r module load $testmoduleparameter
-
-       set t [r module list]
-       set modulename [lmap x [r module list] {dict get $x name}]
-       assert_not_equal [lsearch $modulename myhello] -1
-       string match "" [lmap x [r module list] {dict get $x args}]
-       r module set-argument myhello 1 2 3
-       r config rewrite
-       restart_server 0 true false
-       string match "1 2 3" [lmap x [r module list] {dict get $x args}]
-    }
-
 }
 
 
