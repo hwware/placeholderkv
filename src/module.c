@@ -12368,6 +12368,15 @@ void addReplyLoadedModules(client *c) {
         for (int i = 0; i < module->loadmod->argc; i++) {
             addReplyBulk(c, module->loadmod->argv[i]);
         }
+	listIter li;
+        listNode *ln;
+        listRewind(module->module_configs, &li);
+	while ((ln = listNext(&li))) {
+	    ModuleConfig *module_config = listNodeValue(ln);
+	    sds config_name = sdscatfmt(sdsempty(), "%s.%s", module->name, module_config->name);
+            getConfigValue(config_name, module_config);
+	}
+
     }
     dictReleaseIterator(di);
 }

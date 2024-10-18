@@ -3473,6 +3473,7 @@ void freeServerClientMemUsageBuckets(void);
 
 /* Module Configuration */
 typedef struct ModuleConfig ModuleConfig;
+void getConfigValue(sds name, ModuleConfig *module_config);
 int performModuleConfigSetFromName(sds name, sds value, const char **err);
 int performModuleConfigSetDefaultFromName(sds name, const char **err);
 void addModuleBoolConfig(const char *module_name, const char *name, int flags, void *privdata, int default_val);

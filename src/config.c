@@ -758,6 +758,7 @@ int performModuleConfigSetDefaultFromName(sds name, const char **err) {
     return 0;
 }
 
+
 static void restoreBackupConfig(standardConfig **set_configs,
                                 sds *old_values,
                                 int count,
@@ -2217,6 +2218,25 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
         rewriteConfigNumericalOption(state, name, value, config->data.numeric.default_value);
     }
 }
+
+void getConfigValue(sds name, ModuleConfig *module_config) {
+    standardConfig *config = lookupConfig(name);
+            switch (config->type) {
+                case BOOL_CONFIG:
+            serverLog(LL_NOTICE, "it is bool type, value is %s", boolConfigGet(config));
+            break;
+                case SDS_CONFIG:
+            serverLog(LL_NOTICE, "it is string type");
+            break;
+                case NUMERIC_CONFIG:
+            serverLog(LL_NOTICE, "it is number type, value is %s", numericConfigGet(config));
+            break;
+                case ENUM_CONFIG:
+            serverLog(LL_NOTICE, "it is enum type");
+            break;
+        }
+}
+
 
 #define embedCommonNumericalConfig(name, alias, _flags, lower, upper, config_addr, default, num_conf_flags, is_valid, \
                                    apply)                                                                             \
