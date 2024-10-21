@@ -2219,22 +2219,19 @@ static void numericConfigRewrite(standardConfig *config, const char *name, struc
     }
 }
 
-void getConfigValue(sds name, ModuleConfig *module_config) {
-    standardConfig *config = lookupConfig(name);
-            switch (config->type) {
-                case BOOL_CONFIG:
-            serverLog(LL_NOTICE, "it is bool type, value is %s", boolConfigGet(config));
-            break;
-                case SDS_CONFIG:
-            serverLog(LL_NOTICE, "it is string type");
-            break;
-                case NUMERIC_CONFIG:
-            serverLog(LL_NOTICE, "it is number type, value is %s", numericConfigGet(config));
-            break;
-                case ENUM_CONFIG:
-            serverLog(LL_NOTICE, "it is enum type");
-            break;
-        }
+sds getConfigValue(sds config_name) {
+    standardConfig *config = lookupConfig(config_name);
+    switch (config->type) {
+    case BOOL_CONFIG:
+        return boolConfigGet(config);
+    case SDS_CONFIG:
+        return sdsConfigGet(config);
+    case NUMERIC_CONFIG:
+        return numericConfigGet(config);
+    case ENUM_CONFIG:
+        return enumConfigGet(config);
+    default: serverPanic("Config type of module config is not allowed.");
+    }
 }
 
 
