@@ -12373,13 +12373,15 @@ void addReplyLoadedModules(client *c) {
         listIter li;
         listNode *ln;
         listRewind(module->module_configs, &li);
-	while ((ln = listNext(&li))) {
-	    ModuleConfig *module_config = listNodeValue(ln);
-	    sds config_name = sdscatfmt(sdsempty(), "%s.%s", module->name, module_config->name);
-        addReplyBulkCBuffer(c, config_name, sdslen(config_name));
-        sds config_value = getConfigValue(config_name);
-        addReplyBulkCBuffer(c, config_value, sdslen(config_value));
-    }
+        while ((ln = listNext(&li))) {
+            ModuleConfig *module_config = listNodeValue(ln);
+            sds config_name = sdscatfmt(sdsempty(), "%s.%s", module->name, module_config->name);
+            addReplyBulkCBuffer(c, config_name, sdslen(config_name));
+            sds config_value = getConfigValue(config_name);
+            addReplyBulkCBuffer(c, config_value, sdslen(config_value));
+            sdsfree(config_name);
+            sdsfree(config_value);
+        }
     }
     dictReleaseIterator(di);
 }
