@@ -145,7 +145,6 @@ start_server {tags {"maxmemory" "external:skip"}} {
 }
 
 start_server {tags {"maxmemory external:skip"}} {
-
     test "Without maxmemory small integers are shared" {
         r config set maxmemory 0
         r set a 1
