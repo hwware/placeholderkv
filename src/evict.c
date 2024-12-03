@@ -539,14 +539,14 @@ int performEvictions(void) {
     if (!isSafeToPerformEvictions()) return EVICT_OK;
 
     int keys_freed = 0;
-    size_t mem_reported, mem_tofree;
+    size_t mem_reported, mem_tofree, mem_used;
     long long mem_freed = 0; /* Maybe become negative */
     mstime_t latency, eviction_latency;
     long long delta;
     int replicas = listLength(server.replicas);
     int result = EVICT_FAIL;
 
-    if (getMaxmemoryState(&mem_reported, NULL, &mem_tofree, NULL, server.maxmemory_soft) == C_OK) {
+    if (getMaxmemoryState(&mem_reported, &mem_used, &mem_tofree, NULL, server.maxmemory_soft) == C_OK) {
         result = EVICT_OK;
         goto update_metrics;
     }
@@ -727,24 +727,16 @@ int performEvictions(void) {
                 }
             }
         } else {
-            if (server.maxmemory_soft_scale) {
-                break;
-            } else {
-                goto cant_free; /* nothing to free... */
-            }
+	    break;
         }
     }
-    if (server.maxmemory_soft_scale) {
-        size_t mem_used = zmalloc_used_memory();
-        size_t overhead = freeMemoryGetNotCountedMemory();
-        mem_used = (mem_used > overhead) ? mem_used - overhead : 0;
-        if (mem_used < server.maxmemory_soft) {
-            result = EVICT_OK;
-            goto update_metrics;
-        }
+
+    if (mem_freed >= (long long)(mem_used - server.maxmemory_soft)) {
+        /* at this point, the memory is OK, or we have reached the time limit */
+        result = (isEvictionProcRunning) ? EVICT_RUNNING : EVICT_OK;
+    } else {
+        goto cant_free;
     }
-    /* at this point, the memory is OK, or we have reached the time limit */
-    result = (isEvictionProcRunning) ? EVICT_RUNNING : EVICT_OK;
 
 cant_free:
     if (result == EVICT_FAIL) {
