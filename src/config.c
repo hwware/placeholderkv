@@ -2541,19 +2541,6 @@ static int updateKeyEvictionMemory(const char **err) {
     return 1;
 }
 
-static int updateMaxmemorySoftScale(const char **err) {
-    UNUSED(err);
-    if (server.maxmemory_soft_scale) {
-        if (server.maxmemory_soft_scale < 10) {
-            server.maxmemory_soft_scale = 10;
-        } else if (server.maxmemory_soft_scale > 60) {
-            server.maxmemory_soft_scale = 60;
-        }
-    }
-    updateSoftMaxmemoryValue();
-    return 1;
-}
-
 static int updateMaxmemory(const char **err) {
     UNUSED(err);
     if (server.maxmemory) {
@@ -2565,7 +2552,7 @@ static int updateMaxmemory(const char **err) {
                       "depending on the maxmemory-policy.",
                       server.maxmemory, used);
         }
-        updateSoftMaxmemoryValue();
+	updateSoftMaxmemoryValue();
         startEvictionTimeProc();
     }
     return 1;
@@ -3266,7 +3253,7 @@ standardConfig static_configs[] = {
     createIntConfig("lfu-decay-time", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.lfu_decay_time, 1, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("replica-priority", "slave-priority", MODIFIABLE_CONFIG, 0, INT_MAX, server.replica_priority, 100, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("repl-diskless-sync-delay", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.repl_diskless_sync_delay, 5, INTEGER_CONFIG, NULL, NULL),
-    createIntConfig("maxmemory-soft-scale", NULL, MODIFIABLE_CONFIG, 0, 100, server.maxmemory_soft_scale, 0, INTEGER_CONFIG, NULL, updateMaxmemorySoftScale),
+    createIntConfig("maxmemory-soft-scale", NULL, MODIFIABLE_CONFIG, 0, 100, server.maxmemory_soft_scale, 0, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("maxmemory-samples", NULL, MODIFIABLE_CONFIG, 1, 64, server.maxmemory_samples, 5, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("maxmemory-eviction-tenacity", NULL, MODIFIABLE_CONFIG, 0, 100, server.maxmemory_eviction_tenacity, 10, INTEGER_CONFIG, NULL, NULL),
     createIntConfig("timeout", NULL, MODIFIABLE_CONFIG, 0, INT_MAX, server.maxidletime, 0, INTEGER_CONFIG, NULL, NULL), /* Default client timeout: infinite */

@@ -2699,7 +2699,11 @@ void initServer(void) {
     resetReplicationBuffer();
 
     if (server.maxmemory) {
-        updateSoftMaxmemoryValue();
+        if (!server.key_eviction_memory || server.key_eviction_memory > server.maxmemory) {
+            server.key_eviction_memory = server.maxmemory;
+        }
+    } else {
+        server.key_eviction_memory = 0;
     }
 
     /* Make sure the locale is set on startup based on the config file. */
@@ -5688,7 +5692,6 @@ sds genValkeyInfoString(dict *section_dict, int all_sections, int everything) {
                 "maxmemory:%lld\r\n", server.maxmemory,
                 "maxmemory_human:%s\r\n", maxmemory_hmem,
                 "maxmemory_policy:%s\r\n", evict_policy,
-                "maxmemory_soft_scale:%d\r\n", server.maxmemory_soft_scale,
                 "key_eviction_memory:%lld\r\n", server.key_eviction_memory,
                 "key_eviction_memory_human:%s\r\n", key_eviction_memory_hmem,
                 "allocator_frag_ratio:%.2f\r\n", mh->allocator_frag,
