@@ -2505,8 +2505,42 @@ static int updateReplBacklogSize(const char **err) {
     return 1;
 }
 
-/* Adjusts `maxmemory_soft_scale` to ensure it remains within the valid range of 10 to 60, if set.
- * Once adjusted, the available memory is recalculated to reflect the new soft maxmemory. */
+static int updateKeyEvictionMemory(const char **err) {
+    UNUSED(err);
+    if (server.maxmemory) {
+        if (!server.key_eviction_memory) {
+            serverLog(LL_WARNING,
+                      "WARNING: current maxmemory value is not 0, the new key-eviction-memory value set via CONFIG SET (%llu) is  "
+                      "0. The new key-eviction-memory value is set to equal to current maxmemory (%llu) ",
+                      server.key_eviction_memory, server.maxmemory);
+            server.key_eviction_memory = server.maxmemory;
+        } else if (server.key_eviction_memory > server.maxmemory) {
+            serverLog(LL_WARNING,
+                      "WARNING: the new key-eviction-memory value set via CONFIG SET (%llu) is greater than current maxmemory, "
+                      "The new key-eviction-memory value is set to equal to current maxmemory (%llu) ",
+                      server.key_eviction_memory, server.maxmemory);
+            server.key_eviction_memory = server.maxmemory;
+        }
+        size_t used = zmalloc_used_memory() - freeMemoryGetNotCountedMemory();
+        if (server.key_eviction_memory < used) {
+            serverLog(LL_WARNING,
+                      "WARNING: the new key-eviction-memorym value set via CONFIG SET (%llu) is smaller than the current memory "
+                      "usage (%zu). This will result in key eviction and/or the inability to accept new write commands "
+                      "depending on the maxmemory-policy.",
+                      server.key_eviction_memory, used);
+        }
+    } else {
+        if (server.key_eviction_memory) {
+            serverLog(LL_WARNING,
+                      "WARNING: current maxmemory value is 0, the new key-eviction-memory value set via CONFIG SET (%llu) is  "
+                      "greater than 0. The new key-eviction-memory value is invalid, and its value is set to 0 ",
+                      server.key_eviction_memory);
+        }
+        server.key_eviction_memory = 0;
+    }
+    return 1;
+}
+
 static int updateMaxmemorySoftScale(const char **err) {
     UNUSED(err);
     if (server.maxmemory_soft_scale) {
@@ -3283,6 +3317,7 @@ standardConfig static_configs[] = {
 
     /* Unsigned Long Long configs */
     createULongLongConfig("maxmemory", NULL, MODIFIABLE_CONFIG, 0, ULLONG_MAX, server.maxmemory, 0, MEMORY_CONFIG, NULL, updateMaxmemory),
+    createULongLongConfig("key-eviction-memory", NULL, MODIFIABLE_CONFIG, 0, ULLONG_MAX, server.key_eviction_memory, 0, MEMORY_CONFIG, NULL, updateKeyEvictionMemory),
     createULongLongConfig("cluster-link-sendbuf-limit", NULL, MODIFIABLE_CONFIG, 0, ULLONG_MAX, server.cluster_link_msg_queue_limit_bytes, 0, MEMORY_CONFIG, NULL, NULL),
 
     /* Size_t configs */
