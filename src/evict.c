@@ -424,7 +424,7 @@ int getMaxmemoryState(size_t *total, size_t *logical, size_t *tofree, float *lev
     if (mem_used <= maxmemory) return C_OK;
 
     /* Compute how much memory we need to free. */
-    mem_tofree = mem_used - server.key_eviction_memory_temp;
+    mem_tofree = mem_used - server.key_eviction_memory;
 
     if (logical) *logical = mem_used;
     if (tofree) *tofree = mem_tofree;
@@ -546,7 +546,7 @@ int performEvictions(void) {
     int replicas = listLength(server.replicas);
     int result = EVICT_FAIL;
 
-    if (getMaxmemoryState(&mem_reported, &mem_used, &mem_tofree, NULL, server.key_eviction_memory_temp) == C_OK) {
+    if (getMaxmemoryState(&mem_reported, &mem_used, &mem_tofree, NULL, server.key_eviction_memory) == C_OK) {
         result = EVICT_OK;
         goto update_metrics;
     }
@@ -712,7 +712,7 @@ int performEvictions(void) {
                  * across the dbAsyncDelete() call, while the thread can
                  * release the memory all the time. */
                 if (server.lazyfree_lazy_eviction) {
-                    if (getMaxmemoryState(NULL, NULL, NULL, NULL, server.key_eviction_memory_temp) == C_OK) {
+                    if (getMaxmemoryState(NULL, NULL, NULL, NULL, server.key_eviction_memory) == C_OK) {
                         break;
                     }
                 }
@@ -731,7 +731,7 @@ int performEvictions(void) {
         }
     }
 
-    if (mem_freed >= (long long)(mem_used - server.key_eviction_memory_temp)) {
+    if (mem_freed >= (long long)(mem_used - server.key_eviction_memory)) {
         /* at this point, the memory is OK, or we have reached the time limit */
         result = (isEvictionProcRunning) ? EVICT_RUNNING : EVICT_OK;
     } else {
@@ -746,7 +746,7 @@ cant_free:
         mstime_t lazyfree_latency;
         latencyStartMonitor(lazyfree_latency);
         while (bioPendingJobsOfType(BIO_LAZY_FREE) && elapsedUs(evictionTimer) < eviction_time_limit_us) {
-            if (getMaxmemoryState(NULL, NULL, NULL, NULL, server.key_eviction_memory_temp) == C_OK) {
+            if (getMaxmemoryState(NULL, NULL, NULL, NULL, server.key_eviction_memory) == C_OK) {
                 result = EVICT_OK;
                 break;
             }

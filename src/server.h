@@ -2102,7 +2102,6 @@ struct valkeyServer {
     int maxmemory_policy;                       /* Policy for key eviction */
     int maxmemory_samples;                      /* Precision of random sampling */
     int maxmemory_soft_scale;                   /* Percent of the soft maxmemory value */
-    unsigned long long key_eviction_memory_temp;     /* Memory bytes to begin the key eviction process */
     unsigned long long key_eviction_memory;     /* Memory bytes to begin the key eviction process */
     int maxmemory_eviction_tenacity;            /* Aggressiveness of eviction processing */
     int lfu_log_factor;                         /* LFU logarithmic counter factor. */
@@ -3039,7 +3038,7 @@ static inline int canUseSharedObject(void) {
     return server.maxmemory == 0 || !(server.maxmemory_policy & MAXMEMORY_FLAG_NO_SHARED_INTEGERS);
 }
 static inline void updateSoftMaxmemoryValue(void) {
-    server.key_eviction_memory_temp = (unsigned long long)server.maxmemory / 100.0 * (100 - server.maxmemory_soft_scale);
+    server.key_eviction_memory = (unsigned long long)server.maxmemory / 100.0 * (100 - server.maxmemory_soft_scale);
 }
 #define sdsEncodedObject(objptr) (objptr->encoding == OBJ_ENCODING_RAW || objptr->encoding == OBJ_ENCODING_EMBSTR)
 
