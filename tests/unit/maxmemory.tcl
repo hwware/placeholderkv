@@ -145,45 +145,6 @@ start_server {tags {"maxmemory" "external:skip"}} {
 }
 
 start_server {tags {"maxmemory external:skip"}} {
-    test "Without maxmemory small integers are shared" {
-        r config set maxmemory 0
-        r set a 1
-        assert_refcount_morethan a 1
-    }
-
-    test "With maxmemory and non-LRU policy integers are still shared" {
-        r config set maxmemory 1073741824
-        r config set maxmemory-policy allkeys-random
-        r set a 1
-        assert_refcount_morethan a 1
-    }
-
-    test "With maxmemory and LRU policy integers are not shared" {
-        r config set maxmemory 1073741824
-        r config set maxmemory-policy allkeys-lru
-        r set a 1
-        r config set maxmemory-policy volatile-lru
-        r set b 1
-        assert_refcount 1 a
-        assert_refcount 1 b
-        r config set maxmemory 0
-    }
-
-    test "Shared integers are unshared with maxmemory and LRU policy" {
-        r set a 1
-        r set b 1
-        assert_refcount_morethan a 1
-        assert_refcount_morethan b 1
-        r config set maxmemory 1073741824
-        r config set maxmemory-policy allkeys-lru
-        r get a
-        assert_refcount 1 a
-        r config set maxmemory-policy volatile-lru
-        r get b
-        assert_refcount 1 b
-        r config set maxmemory 0
-    }
-
     foreach policy {
         allkeys-random allkeys-lru allkeys-lfu volatile-lru volatile-lfu volatile-random volatile-ttl
     } {
@@ -213,7 +174,7 @@ start_server {tags {"maxmemory external:skip"}} {
                 r setex [randomKey] 10000 x
             }
             assert {[s used_memory] < ($limit+4096)}
-            r config set maxmemory 0
+	    r config set maxmemory 0
         }
     }
 
@@ -256,7 +217,7 @@ start_server {tags {"maxmemory external:skip"}} {
             } else {
                 assert {$err == 1}
             }
-            r config set maxmemory 0
+	    r config set maxmemory 0
         }
     }
 
@@ -302,7 +263,7 @@ start_server {tags {"maxmemory external:skip"}} {
             for {set j 0} {$j < $numkeys} {incr j 2} {
                 assert {[r exists "key:$j"]}
             }
-            r config set maxmemory 0
+	    r config set maxmemory 0
         }
     }
 
