@@ -315,7 +315,7 @@ start_server {tags {"maxmemory external:skip"}} {
             r flushall
             # make sure to start with a blank instance
             set num_eviction_key_init [s evicted_keys]
-            set used [s used_memory]
+	    set used 1134728
             set limit_maxmemory [expr {$used+100*1024}]
             set limit_key_eviction_memory_threshold1 [expr {$used+70*1024}]
             set limit_key_eviction_memory_threshold2 [expr {$used+40*1024}]
