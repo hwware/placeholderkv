@@ -2910,9 +2910,18 @@ void aclCommand(client *c) {
             }
         }
         raxStop(&ri);
-    } else if (!strcasecmp(sub, "whoami") && c->argc == 2) {
+    } else if (!strcasecmp(sub, "whoami") && (c->argc == 2 || c->argc == 3)) {
         if (c->user != NULL) {
-            addReplyBulkCBuffer(c, c->user->name, sdslen(c->user->name));
+            if (c->argc == 3) {
+                sds config = sdsnew(c->user->name);
+                config = sdscatlen(config, " ", 1);
+                robj *descr = ACLDescribeUser(c->user);
+                config = sdscatsds(config, descr->ptr);
+                decrRefCount(descr);
+                addReplyBulkSds(c, config);
+            } else {
+                addReplyBulkCBuffer(c, c->user->name, sdslen(c->user->name));
+            }
         } else {
             addReplyNull(c);
         }

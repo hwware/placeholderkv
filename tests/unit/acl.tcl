@@ -3,6 +3,10 @@ start_server {tags {"acl external:skip"}} {
         r ACL WHOAMI
     } {default}
 
+    test {Connections with the effective ACL rules of the default user} {
+        r ACL WHOAMI FULL
+    } {*default on nopass*}
+
     test {It is possible to create new users} {
         r ACL setuser newuser
     }

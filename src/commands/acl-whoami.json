@@ -1,12 +1,18 @@
 {
     "WHOAMI": {
-        "summary": "Returns the authenticated username of the current connection.",
+        "summary": "Returns the authenticated username of the current connection or its effective rules in ACL file format.",
         "complexity": "O(1)",
         "group": "server",
         "since": "6.0.0",
-        "arity": 2,
+        "arity": -2,
         "container": "ACL",
         "function": "aclCommand",
+        "history": [
+            [
+                "9.0.0",
+                "Added the `FULL` option."
+            ]
+        ],
         "command_flags": [
             "NOSCRIPT",
             "LOADING",
@@ -16,6 +22,16 @@
         "reply_schema": {
             "type": "string",
             "description": "The username of the current connection."
-        }
+        },
+        "arguments": [
+            {
+                "name": "full",
+                "type": "pure-token",
+                "token": "FULL",
+                "optional": true,
+                "since": "9.0.0"
+            }
+        ]
+
     }
 }
