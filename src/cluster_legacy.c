@@ -6910,7 +6910,7 @@ int clusterCommandSpecial(client *c) {
         }
 
         if (cport <= 0 || cport > 65535) {
-            addReplyErrorFormat(c, "Cport number is out of range");
+            addReplyErrorFormat(c, "Cluster bus port number is out of range");
             return 1;
         }
 
