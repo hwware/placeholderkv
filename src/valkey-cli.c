@@ -4689,10 +4689,12 @@ static int clusterManagerSetSlotOwner(clusterManagerNode *owner, int slot, int d
     int success = clusterManagerStartTransaction(owner);
     if (!success) return 0;
     /* Ensure the slot is not already assigned. */
-    clusterManagerDelSlot(owner, slot, 1);
+    success = clusterManagerDelSlot(owner, slot, 1);
+    if (!success) return 0;
     /* Add the slot and bump epoch. */
     clusterManagerAddSlot(owner, slot);
-    if (do_clear) clusterManagerClearSlotStatus(owner, slot);
+    if (do_clear) success = clusterManagerClearSlotStatus(owner, slot);
+    if (!success) return 0;
     clusterManagerBumpEpoch(owner);
     success = clusterManagerExecTransaction(owner, clusterManagerOnSetOwnerErr);
     return success;
