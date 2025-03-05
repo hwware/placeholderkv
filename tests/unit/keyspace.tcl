@@ -492,6 +492,12 @@ foreach {type large} [array get largevalue] {
         r randomkey
     } {}
 
+    test {RANDOMKEY count} {
+        r flushdb
+        r set y 10
+        r randomkey count 1
+    } {y}
+
     test {RANDOMKEY regression 1} {
         r flushdb
         r set x 10

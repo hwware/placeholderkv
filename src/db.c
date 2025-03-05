@@ -871,7 +871,62 @@ void selectCommand(client *c) {
     }
 }
 
+void randomWithCountCommand(client *c) {
+    long l;
+    unsigned long count;
+    unsigned long numkeys = 0;
+
+    if (getRangeLongFromObjectOrReply(c, c->argv[2], -LONG_MAX, LONG_MAX, &l, NULL) != C_OK) return;
+    if (l >= 0) {
+        count = (unsigned long)l;
+    } else {
+        /* A negative count means: return the same elements multiple times */
+        count = -l;
+    }
+
+    /* If count is zero, serve it ASAP to avoid special cases later. */
+    if (count == 0) {
+        addReply(c, shared.emptyarray);
+        return;
+    }
+
+    int maxtries = 100 * count;
+
+    void *replylen = addReplyDeferredLen(c);
+    dict *section_dict = dictCreate(&stringSetDictType);
+    dictExpand(section_dict, 100);
+    while (maxtries-- > 0 && count > 0) {
+        void *entry;
+        int randomDictIndex = kvstoreGetFairRandomHashtableIndex(c->db->keys);
+        int ok = kvstoreHashtableFairRandomEntry(c->db->keys, randomDictIndex, &entry);
+        if (!ok) {
+            continue;
+        }
+        robj *valkey = entry;
+        sds key = objectGetKey(valkey);
+        if (dictAdd(section_dict, key, NULL) != DICT_OK) {
+            continue;
+        }
+        addReplyBulkCBuffer(c, key, sdslen(key));
+        numkeys++;
+        count--;
+    }
+    setDeferredArrayLen(c, replylen, numkeys);
+}
+
+/************************************************************
+RANDOMKEY                     numOfArgs = 1
+RANDOMKEY [COUNT <count> ]           numOfArgs = 3
+******************************************************************/
 void randomkeyCommand(client *c) {
+    if (c->argc == 3) {
+        randomWithCountCommand(c);
+        return;
+    } else if (c->argc > 3) {
+        addReplyErrorObject(c, shared.syntaxerr);
+        return;
+    }
+
     robj *key;
 
     if ((key = dbRandomKey(c->db)) == NULL) {
